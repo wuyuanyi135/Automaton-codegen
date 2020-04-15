@@ -85,9 +85,9 @@ def generate_code(
 
     # Events
     events_enum = ", ".join(events.values())
-    events_name = events.keys()
+    events_name = events.values()
     trigger_shortcuts_def = ""
-    for event, en in zip(events, events.keys()):
+    for event, en in zip(events,events_name):
         event = event.lower()
         if event.upper() == else_event:
             continue
