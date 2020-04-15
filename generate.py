@@ -135,9 +135,12 @@ def generate_code(
 #include <Automaton.h>
 
 class {class_name}: public Machine {{
+ protected:
+  enum {{ {actions_enum} }}; // ACTIONS
  public:
   enum {{ {states_enum} }}; // STATES
   enum {{ {events_enum} }}; // EVENTS
+
   {class_name}() : Machine() {{}}
   virtual {class_name}& begin() {{
     // clang-format off
@@ -162,7 +165,6 @@ class {class_name}: public Machine {{
 {trigger_shortcuts_def}
 
  private:
-  enum {{ {actions_enum} }}; // ACTIONS
   {connectors_code}
   virtual int event( int id ) = 0;
   virtual void action( int id ) = 0;
@@ -177,7 +179,7 @@ def read_xls(xls_file):
     return wb
 
 
-def parse_workbook(wb: Workbook):
+def parse_workbook(wb: Workbook, evt_start_col=4):
     states_ws: Worksheet = wb["states"]
     states = {}
     for r in list(states_ws.rows)[1:]:
@@ -192,11 +194,11 @@ def parse_workbook(wb: Workbook):
         }
 
     events = {}
-    for c in list(states_ws.rows)[0][5:]:
+    for c in list(states_ws.rows)[0][evt_start_col:]:
         evt = c.value.upper()
         events[c.value] = f"EVT_{evt}" if evt != "ELSE" else "ELSE"
 
-    state_table = states_ws.iter_rows(min_row=2, min_col=6, values_only=True)
+    state_table = states_ws.iter_rows(min_row=2, min_col=evt_start_col+1, values_only=True)
     state_table = [list(map(lambda x: x or "", x)) for x in state_table]
 
     connector_ws: Worksheet = wb["connectors"]
@@ -207,7 +209,7 @@ def parse_workbook(wb: Workbook):
     enum_name = [x[0] for x in (connector_ws.iter_rows(min_row=2, min_col=5, max_col=5, values_only=True))]
     function_name = [x[0] for x in (connector_ws.iter_rows(min_row=2, min_col=6, max_col=6, values_only=True))]
 
-    connectors = {name: {"slot": s, "broadcast": b, "auto_store": a, "enum_name": e, "funciton_name": f}
+    connectors = {name: {"slot": s, "broadcast": b, "auto_store": a, "enum_name": e, "function_name": f}
                   for name, s, b, a, e, f in zip(names, slot, broadcast, auto_store, enum_name, function_name)}
 
     config_ws: Worksheet = wb["config"]
