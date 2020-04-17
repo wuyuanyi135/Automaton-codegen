@@ -164,7 +164,7 @@ class {class_name}: public Machine {{
   // trigger shortcuts
 {trigger_shortcuts_def}
 
- private:
+ protected:
   {connectors_code}
   virtual int event( int id ) = 0;
   virtual void action( int id ) = 0;
